@@ -29,6 +29,18 @@
   var waterSection = document.getElementById('waterScene');
   if (!container || !waveCanvas || !boxDiv || !waterSection) return;
 
+  /* ── debug overlay ────────────────────────────────────────── */
+  var dbg = document.createElement('div');
+  dbg.id = 'world-debug';
+  dbg.style.cssText = [
+    'position:fixed', 'top:12px', 'right:12px',
+    'color:#ff69b4', 'font:bold 11px/1.6 monospace',
+    'background:rgba(0,0,0,0.55)', 'padding:8px 12px',
+    'border-radius:6px', 'pointer-events:none',
+    'z-index:9999', 'white-space:pre'
+  ].join(';');
+  document.body.appendChild(dbg);
+
   /* ── physics constants ────────────────────────────────────── */
   var SCALE  = 30;
   var BOX_PX = 200;              // 200 px half-side → 400 px full side
@@ -127,7 +139,6 @@
   // fall). The only exception: scroll back up to promoScene after full
   // submersion → gravity flips to lift them back to the top.
   var lastScrollY      = window.scrollY;
-  var scrollTimer      = null;
   var gravityMode      = 'frozen';  // 'frozen' | 'down' | 'up'
   var hasBeenReleased  = false;
   var hasBeenSubmerged = false;
@@ -160,10 +171,10 @@
     if (!hasBeenReleased || Math.abs(delta) < 1) return;
 
     // Reset: scrolling up + already submerged + back to promo section
-    if (delta < 0 && hasBeenSubmerged && sy <= waterSection.offsetTop) {
+    // Gravity stays 'up' for as long as the user remains above waterSection;
+    // flips back to 'down' only when they scroll down past that boundary.
+    if (hasBeenSubmerged && sy <= waterSection.offsetTop) {
       setGravityMode('up');
-      clearTimeout(scrollTimer);
-      scrollTimer = setTimeout(function () { setGravityMode('down'); }, 350);
     } else {
       setGravityMode('down');
     }
@@ -244,6 +255,17 @@
     var t = Date.now() / 1000;
     drawScene(t);
     syncBox();
+
+    dbg.textContent = [
+      'gravityMode      : ' + gravityMode,
+      'hasBeenReleased  : ' + hasBeenReleased,
+      'hasBeenSubmerged : ' + hasBeenSubmerged,
+      'scrollY          : ' + Math.round(window.scrollY),
+      'releaseThreshold : ' + Math.round(releaseThreshold()),
+      'wsOffsetTop      : ' + waterSection.offsetTop,
+      'gravity.y        : ' + world.GetGravity().y.toFixed(1),
+    ].join('\n');
+
     requestAnimationFrame(tick);
   }
 
