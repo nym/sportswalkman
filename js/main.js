@@ -102,6 +102,9 @@
     btn.addEventListener('click', function () {
       colorButtons.forEach(function (b) { b.classList.remove('selected'); });
       btn.classList.add('selected');
+      if (typeof window.setHeadphoneColor === 'function') {
+        window.setHeadphoneColor(btn.dataset.color);
+      }
     });
   });
 

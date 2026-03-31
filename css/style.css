@@ -27,9 +27,19 @@ playback timings (ms):
   overflow: hidden !important;
 }
 
-/* Water panel: show the underwater feature panel */
+/* Water panel: show the underwater feature panel, moved up */
 #waterScene .water-panel {
   display: block !important;
+  top: 750px !important;   /* pulled up from original 900px, then shifted down 50px */
+}
+
+/* "Operates at 2 METERS" — hidden until waterScene scrolls into view */
+#waterScene .operates-at {
+  opacity: 0;
+  transition: opacity 1.2s ease 0.4s;
+}
+#waterScene.visible .operates-at {
+  opacity: 1;
 }
 
 /* Ensure slide backgrounds cover the full area */
@@ -132,4 +142,27 @@ playback timings (ms):
 }
 .content-area a.toggle:hover {
   background-image: url(../images/arrow_sprite_hover_off.png);
+}
+
+/* ── Box2D simulation — full-width overlay ─────────────────── */
+#world {
+  position: absolute;
+  top: 0; left: 0;  /* overridden by JS */
+  pointer-events: none;
+  z-index: 2;
+}
+
+#world-waves {
+  position: absolute;
+  top: 0; left: 0;
+  display: block;
+}
+
+#world-box {
+  position: absolute;
+  background-image: url(../images/NWZW273SB.webp);
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  /* transparent fill — only the image shows */
 }
