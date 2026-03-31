@@ -126,10 +126,9 @@
   // header/description panel. After that, gravity is always +9.8 (natural
   // fall). The only exception: scroll back up to promoScene after full
   // submersion → gravity flips to lift them back to the top.
-  var lastScrollY      = window.scrollY;
-  var scrollTimer      = null;
-  var gravityMode      = 'frozen';  // 'frozen' | 'down' | 'up'
-  var hasBeenReleased  = false;
+  var lastScrollY     = window.scrollY;
+  var gravityMode     = 'frozen';  // 'frozen' | 'down' | 'up'
+  var hasBeenReleased = false;
   var hasBeenSubmerged = false;
 
   // Release when the waterline reaches the vertical midpoint of the viewport
@@ -159,11 +158,9 @@
 
     if (!hasBeenReleased || Math.abs(delta) < 1) return;
 
-    // Reset: scrolling up + already submerged + back to promo section
-    if (delta < 0 && hasBeenSubmerged && sy <= waterSection.offsetTop) {
+    // Reset: scrolling up past the release point → lift headphones back up
+    if (delta < 0 && sy < releaseThreshold()) {
       setGravityMode('up');
-      clearTimeout(scrollTimer);
-      scrollTimer = setTimeout(function () { setGravityMode('down'); }, 350);
     } else {
       setGravityMode('down');
     }
@@ -224,6 +221,67 @@
     boxDiv.style.backgroundImage = 'url(' + (imageMap[color] || imageMap.black) + ')';
   };
 
+  /* ── debug overlay (bottom-right, large white text) ────────── */
+  var debugFooter = document.createElement('div');
+  debugFooter.id = 'physics-debug';
+  debugFooter.style.cssText =
+    'position:fixed;bottom:0;left:0;right:0;z-index:9999;' +
+    'background:rgba(0,0,0,0.85);color:#fff;font:bold 14px/1.3 monospace;' +
+    'padding:10px 28px 12px;pointer-events:none;' +
+    'text-shadow:0 1px 3px rgba(0,0,0,0.6);border-top:2px solid rgba(255,255,255,0.2);';
+
+  var debugTitle = document.createElement('div');
+  debugTitle.style.cssText =
+    'font-size:13px;letter-spacing:0.18em;opacity:0.55;margin-bottom:6px;text-transform:uppercase;';
+  debugTitle.textContent = 'HEADPHONE DEMO - ARCHIVE - WALKMAN MICROSITE, 2015';
+
+  var debugStats = document.createElement('div');
+  debugStats.style.cssText =
+    'display:flex;gap:48px;flex-wrap:nowrap;align-items:baseline;white-space:nowrap;';
+
+  debugFooter.appendChild(debugTitle);
+  debugFooter.appendChild(debugStats);
+  document.body.appendChild(debugFooter);
+
+  function makeStatEl() {
+    var el = document.createElement('span');
+    return el;
+  }
+  var statGravity   = makeStatEl();
+  var statForce     = makeStatEl();
+  var statPos       = makeStatEl();
+  var statSubmerged = makeStatEl();
+  [statGravity, statForce, statPos, statSubmerged].forEach(function (el) {
+    debugStats.appendChild(el);
+  });
+
+  function updateDebug() {
+    var pos  = square.GetPosition();
+    var g    = world.GetGravity();
+    var mass = square.GetMass();
+    var fx   = g.x * mass;
+    var fy   = g.y * mass;
+    var fmag = Math.sqrt(fx * fx + fy * fy);
+    var arrow;
+    if (fmag < 0.01) {
+      arrow = '\u25cb'; // ○ no force
+    } else {
+      var ang = Math.atan2(fy, fx) * 180 / Math.PI;
+      if      (ang >  157.5 || ang <= -157.5) arrow = '\u2190'; // ←
+      else if (ang >  112.5)                  arrow = '\u2199'; // ↙
+      else if (ang >   67.5)                  arrow = '\u2193'; // ↓
+      else if (ang >   22.5)                  arrow = '\u2198'; // ↘
+      else if (ang >  -22.5)                  arrow = '\u2192'; // →
+      else if (ang >  -67.5)                  arrow = '\u2197'; // ↗
+      else if (ang > -112.5)                  arrow = '\u2191'; // ↑
+      else                                    arrow = '\u2196'; // ↖
+    }
+    statGravity.textContent   = 'GRAVITY  ' + gravityMode + ' (' + g.x.toFixed(1) + ', ' + g.y.toFixed(1) + ')';
+    statForce.textContent     = 'FORCE  ' + arrow + ' ' + fmag.toFixed(2) + ' N';
+    statPos.textContent       = 'POS  (' + pos.x.toFixed(2) + ', ' + pos.y.toFixed(2) + ')';
+    statSubmerged.textContent = 'SUBMERGED  ' + hasBeenSubmerged;
+  }
+
   /* ── animation loop ───────────────────────────────────────── */
   var STEP = 1 / 60;
   function tick() {
@@ -244,6 +302,7 @@
     var t = Date.now() / 1000;
     drawScene(t);
     syncBox();
+    updateDebug();
     requestAnimationFrame(tick);
   }
 
