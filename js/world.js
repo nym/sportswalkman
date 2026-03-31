@@ -222,6 +222,19 @@
   };
 
   /* ── debug overlay (bottom-right, large white text) ────────── */
+  var creditHeader = document.createElement('div');
+  creditHeader.style.cssText =
+    'position:fixed;top:0;right:0;z-index:9999;' +
+    'background:rgba(0,0,0,0.85);color:#fff;font:bold 14px/1.3 monospace;' +
+    'padding:8px 16px 10px;pointer-events:auto;display:inline-block;' +
+    'text-shadow:0 1px 3px rgba(0,0,0,0.6);border-bottom-left-radius:6px;' +
+    'border-bottom:2px solid rgba(255,255,255,0.2);border-left:2px solid rgba(255,255,255,0.2);';
+  creditHeader.innerHTML =
+    'Recreated by Tom Longson<br>' +
+    '<a href="https://github.com/nym/sportswalkman/" target="_blank" ' +
+    'style="color:#7cf;text-decoration:none;font-size:12px;">github.com/nym/sportswalkman/</a>';
+  document.body.appendChild(creditHeader);
+
   var debugFooter = document.createElement('div');
   debugFooter.id = 'physics-debug';
   debugFooter.style.cssText =
