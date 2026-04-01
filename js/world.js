@@ -97,6 +97,21 @@
   buoy.linearDrag  = 8;    // low enough to reach the pool floor
   buoy.angularDrag = 5;
   world.AddController(buoy);
+  // b2BuoyancyController also exposes a `velocity` field (b2Vec2) that
+  // simulates fluid current — bodies inside the water zone get dragged
+  // toward this velocity.  A gentle horizontal flow adds realism:
+  buoy.velocity    = new b2Vec2(0.3, 0);   // subtle rightward current
+
+  // Other knobs already used above:
+  //   normal      – surface plane normal (0,‑1 = horizontal surface)
+  //   offset      – surface position along normal (negative = y downward)
+  //   density     – fluid density (buoyant force ∝ fluidDensity − bodyDensity)
+  //   linearDrag  – viscous drag on translation (higher = more sluggish)
+  //   angularDrag – viscous drag on rotation
+  //
+  // That's the full API for b2BuoyancyController in Box2dWeb 2.1.
+  // For richer water effects (e.g. variable density, splash particles)
+  // you'd need custom force logic outside the controller.
 
   /* ── boundaries (floor, ceiling, walls) ──────────────────── */
   function staticBox(x, y, hw, hh) {
@@ -151,8 +166,8 @@
   function setGravityMode(mode) {
     if (gravityMode === mode) return;
     gravityMode = mode;
-    if (mode === 'up')   world.SetGravity(new b2Vec2(0, -9.8));
-    else if (mode === 'down') world.SetGravity(new b2Vec2(0,  9.8));
+    if (mode === 'up')   world.SetGravity(new b2Vec2(0, -80));
+    else if (mode === 'down') world.SetGravity(new b2Vec2(0,  40);
     else                 world.SetGravity(new b2Vec2(0,  0));
   }
 
