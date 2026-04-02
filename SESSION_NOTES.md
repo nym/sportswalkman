@@ -111,3 +111,155 @@ If the physics behavior had been fully described in 2–3 prompts, realistically
 - **`#world` outside `#waterScene`** — placing the canvas overlay inside the section caused it to be clipped by `overflow:hidden`. Moving it to a sibling div fixed this.
 - **PIL crop instead of CSS shadow** — the drop shadow was baked into the image alpha channel, not a CSS effect. Cropping 167px from the bottom via Pillow was the only reliable fix.
 - **Binary gravity switch** — gravity is either 0 or ±9.8, never proportional to scroll position. The headphones fall at a natural rate once released, independent of how fast the user scrolls.
+
+---
+
+---
+
+# Session 2 — Debug UI, Gravity Fix, 7-Feature Pass
+
+Analysis of the follow-up session focused on demo polish, physics tuning UI, and feature work.
+
+**Date:** 2026-04-02
+**Total active time:** ~1h 20m
+**Total user prompts:** ~28 substantive messages
+**Branch:** `claude/dazzling-meitner` (merged to main via PRs #3 and #4)
+
+---
+
+## Time Breakdown
+
+| Task | Est. Duration | Notes |
+|---|---|---|
+| Debug screen creation | 8 min | Built from scratch — prompt implied it already existed |
+| Velocity → force + direction arrow | 3 min | Clear, well-scoped |
+| Sticky debug footer + title | 4 min | Simple layout change |
+| Gravity-up bug fix | 5 min | Condition required `sy <= waterSection.offsetTop` — too strict |
+| Stats cleanup (remove waterline/released) | 2 min | One-liner change |
+| Font size reduction (2 rounds) | 4 min | Required two prompts; first was vague ("smaller") |
+| Commit + debug title rename | 3 min | Clean |
+| Credit header (top-right) | 4 min | Well-spec'd prompt |
+| Mobile friendliness evaluation | 5 min | Analysis only, no code |
+| Server management (3 failed attempts) | 8 min | Port conflicts, caching issues, cache-buster workaround |
+| 7-feature pass | 25 min | Single refined prompt; efficient execution |
+| Mobile warning banner | 5 min | Simple, clear prompt |
+| Commit / push / merge (×2 PRs) | 4 min | Clean |
+| **Total** | **~1h 20m** | |
+
+---
+
+## Prompt-by-Prompt Analysis
+
+**1. "i had made a debug screen, which instead of the top right, put in bottom right..."**
+Said "had made" implying it existed — it didn't. Claude had to infer the design from scratch, then do two rounds of repositioning.
+> **Better:** *"Create a fixed debug overlay in the bottom-right corner. White bold monospace at 28px, dark semi-transparent background, showing: gravity mode + vector, body velocity, position (m), waterline (m), released and submerged flags."*
+> Specifying the exact fields upfront avoids the follow-up to swap velocity for Newtons + arrow.
+
+---
+
+**2. "remove velocity and instead after gravity: `<direction>`, have the velocity expressed in newtons of force with an arrow showing what direction"**
+Good, precise. The Unicode arrow direction logic was well-understood.
+> Slight confusion: "velocity expressed in newtons" is physically wrong (velocity ≠ force), but the intent was clear (F = m × g). No rework needed since Claude interpreted it correctly.
+
+---
+
+**3. "give the debug menu a title of DEMO ARCHIVE W WALKMAN MICROSITE, and make it a sticky footer..."**
+Clean, unambiguous. Single round.
+
+---
+
+**4. "when returning to the W Series Sports Walkman section, the gravity does not go up..."**
+Good bug report. Root cause: `sy <= waterSection.offsetTop` required scrolling *above* the section entirely. The W Series panel *is* the top of `waterScene`, so the condition was never met.
+> **Better:** *"When scrolling up past the point where the headphones were released (the waterline-at-midpoint threshold), flip gravity to up. Don't require the user to scroll above the section."*
+> Would have avoided the bug entirely in the first implementation.
+
+---
+
+**5–6. Stats cleanup + font size (2 rounds)**
+"make the debug menu text smaller" is too vague — Claude dropped from 20px to 14px in one shot, which happened to be right. A second round could have been needed.
+> **Better:** *"Reduce font to 14px."* Always specify a target size.
+
+---
+
+**7. Credit header prompt**
+Well-spec'd: position, style match, text content, link. Single round, no rework. Good example of a tight prompt.
+
+---
+
+**8. Mobile evaluation**
+Appropriate use of analysis-before-action. Revealed that the site is desktop-only by design (2013-era fixed-width Sony microsite), which correctly framed the mobile warning approach.
+
+---
+
+**9. Server management (3 rounds)**
+Three separate exchanges to resolve: port 8080 in use → killed → new server on 8081 → background process exited (normal for Python http.server) → confusion → launch.json port conflict.
+> **Not a prompting issue** — infrastructure friction. The `launch.json` `autoPort: true` fix resolved it permanently.
+
+---
+
+**10. The 7-feature pass**
+The user drafted prompts, asked Claude to review and suggest improvements, revised them, then submitted. This is the **highest-value workflow pattern in the session**: one round of critique before implementation collapsed what would have been ~14 individual back-and-forth exchanges into a single clean execution.
+
+Features delivered in one pass:
+- YouTube video ID fix
+- Scroll-to-top button
+- Live physics sliders (gravity, buoyancy, drag)
+- Zero drag on gravity-up
+- Depth-based shadow interpolation
+- Pulsing CTA in credit header
+- Music player wired to `korsakov.mp3`
+
+The only post-implementation issue was a pre-existing browser cache problem (not a logic error) that required a version param bump on `world.js`.
+
+---
+
+**11. Mobile warning**
+"add a warning to mobile users it will likely not work correctly that they can click 'ok' to make go away" — clear enough. Single round. The dismiss interaction was verified in console since the preview tool's "mobile" preset doesn't actually change `window.innerWidth` for JavaScript (only CSS media queries).
+
+---
+
+## Cost Analysis — Session 2
+
+| Token type | Est. count | Rate | Est. cost |
+|---|---|---|---|
+| Input | ~1K | $3 / 1M | ~$0.003 |
+| Output | ~90K | $15 / 1M | ~$1.35 |
+| Cache reads | ~32M | $0.30 / 1M | ~$9.60 |
+| Cache writes | ~800K | $3.75 / 1M | ~$3.00 |
+| **Total** | **~33M tokens** | | **~$14** |
+
+On the **$90/month Max plan**, this session consumed roughly **~16% of the monthly budget** in ~1h 20m.
+
+Compared to Session 1 (~$28, 31% of budget), Session 2 was **more cost-efficient per minute** — primarily because:
+1. The 7-feature pass was pre-refined into a single dense prompt, avoiding ~10 iterative rounds
+2. `world.js` stayed smaller longer (no re-reads of box2d.js for most tasks)
+3. Most prompts were single-round completions
+
+The server management friction (~8 min, 3 rounds) added cost for zero feature output — the only pure waste in the session.
+
+**Projected full-session cost if prompts had been tighter from the start:**
+- Debug screen: 1 prompt instead of 3 → save ~1M cache read tokens → ~$0.30
+- Gravity bug: specified threshold correctly upfront → save ~2M tokens → ~$0.60
+- Font size: one prompt → trivial
+- Rough savings: **~$1–2**, bringing the session to ~$12
+
+**Cumulative cost across both sessions: ~$42**, or **~47% of the $90/month plan** for roughly 3 hours of active work and a complete interactive product demo.
+
+---
+
+## Patterns Worth Repeating
+
+| Pattern | Why it worked |
+|---|---|
+| Prompt review pass before implementation | The "make suggestions, don't act" exchange before the 7-feature pass was the single highest-leverage moment in the session. One critique round → one clean implementation round. |
+| Tight field specs for debug UI | Naming exact fields (gravity mode, force in N with arrow, position, submerged) avoided the velocity→force swap round |
+| Providing file names for assets | `korsakov.mp3` in the prompt meant zero asset-search overhead |
+
+## Patterns to Avoid
+
+| Pattern | Cost |
+|---|---|
+| "make it smaller" without a target | Requires a follow-up if the first guess is wrong |
+| Implying something exists that doesn't ("i had made a debug screen") | Forces Claude to infer design from scratch; risk of misalignment |
+| Vague threshold descriptions ("scroll back to the W Series section") | The gravity bug was a direct result — the section boundary wasn't where the prompt implied |
+| Multiple server management prompts | Use `autoPort: true` in `launch.json` from the start |
