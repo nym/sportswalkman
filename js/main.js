@@ -160,4 +160,50 @@
   }, { threshold: 0.1 });
   sections.forEach(function (s) { observer.observe(s); });
 
+  // --- Mobile warning ---
+  if (window.innerWidth < 768) {
+    var mobileWarn = document.createElement('div');
+    mobileWarn.style.cssText =
+      'position:fixed;top:0;left:0;right:0;z-index:99999;' +
+      'background:rgba(0,0,0,0.9);color:#fff;font:bold 16px/1.5 monospace;' +
+      'padding:20px 24px;text-align:center;' +
+      'border-bottom:2px solid rgba(255,255,255,0.2);';
+    mobileWarn.innerHTML =
+      'This site was designed for desktop.<br>' +
+      'Mobile display may not work correctly.<br><br>' +
+      '<button style="background:#fff;color:#000;border:none;padding:8px 28px;' +
+      'font:bold 16px monospace;cursor:pointer;border-radius:4px;">OK</button>';
+    mobileWarn.querySelector('button').addEventListener('click', function () {
+      document.body.removeChild(mobileWarn);
+    });
+    document.body.appendChild(mobileWarn);
+  }
+
+  // --- Scroll-to-top button ---
+  var scrollTopBtn = document.getElementById('scroll-top-btn');
+  if (scrollTopBtn) {
+    scrollTopBtn.addEventListener('click', function (e) {
+      e.preventDefault();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+  }
+
+  // --- Music Player (Zappin section) ---
+  var zapPlayPause = document.getElementById('zappinPlayPause');
+  if (zapPlayPause) {
+    var audio = new Audio('korsakov.mp3');
+    audio.loop = true;
+    zapPlayPause.addEventListener('click', function () {
+      if (audio.paused) {
+        audio.play();
+        zapPlayPause.classList.remove('stop');
+        zapPlayPause.classList.add('playing');
+      } else {
+        audio.pause();
+        zapPlayPause.classList.remove('playing');
+        zapPlayPause.classList.add('stop');
+      }
+    });
+  }
+
 })();
