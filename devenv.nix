@@ -10,16 +10,12 @@
     };
   };
 
-  # ── Playwright browser binaries via Nix (no `npx playwright install` needed) ─
-  packages = [
-    pkgs.chromium
-  ];
-
-  env = {
-    # Point Playwright at Nix-managed Chromium — skips the npm download step
-    PLAYWRIGHT_BROWSERS_PATH = "${pkgs.chromium}";
-    PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH = "${pkgs.chromium}/bin/chromium";
-    PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD = "1";
+  # ── Playwright browser ───────────────────────────────────────────────────────
+  # pkgs.chromium is Linux-only. On macOS we use the system Google Chrome if
+  # present, otherwise fall back to Playwright's own managed download.
+  env = lib.optionalAttrs pkgs.stdenv.isDarwin {
+    PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH =
+      "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
   };
 
   # ── Convenience scripts ──────────────────────────────────────────────────────
