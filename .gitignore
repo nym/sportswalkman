@@ -16,3 +16,13 @@ Icon
 Network Trash Folder
 Temporary Items
 .apdisk
+
+# devenv
+.devenv/
+.devenv.flake.nix
+devenv.lock
+
+# Node / Playwright
+node_modules/
+playwright-report/
+test-results/
