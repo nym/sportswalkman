@@ -28,6 +28,10 @@
     test-headed.exec = "npx playwright test --headed";
     test-ui.exec = "npx playwright test --ui";
     test-report.exec = "npx playwright show-report";
+    demo.exec = ''
+      echo "Recording demo runthrough → demos/runthrough/demo.webm"
+      npx playwright test --config=playwright.demo.config.js
+    '';
   };
 
   # ── Shell greeting ───────────────────────────────────────────────────────────
@@ -38,6 +42,7 @@
     echo "   test          run Playwright tests"
     echo "   test-headed   run with visible browser"
     echo "   test-ui       Playwright interactive UI"
+    echo "   demo          record full runthrough → demos/runthrough/demo.webm"
     echo ""
   '';
 }

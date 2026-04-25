@@ -26,3 +26,4 @@ devenv.lock
 node_modules/
 playwright-report/
 test-results/
+demos/runthrough/_artifacts/
