@@ -1,0 +1,56 @@
+{
+  "$comment": "Permissions evaluate deny first. deny makes paths invisible to Claude. ask prompts each time. allow runs without prompting.",
+  "permissions": {
+    "allow": [
+      "Bash(npm run lint:*)",
+      "Bash(npm run test:*)",
+      "Bash(npm run build:*)",
+      "Bash(npm run typecheck:*)",
+      "Bash(npx playwright:*)",
+      "Bash(npx tsc:*)",
+      "Bash(devenv shell:*)",
+      "Bash(devenv up:*)",
+      "Bash(devenv test:*)",
+      "Bash(git status)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git branch:*)",
+      "Bash(git stash:*)",
+      "Bash(python3 -m http.server:*)",
+      "Bash(lsof -i:*)",
+      "Bash(lsof -ti:*)",
+      "Bash(cp:*)",
+      "Bash(mkdir:*)",
+      "Read",
+      "Glob",
+      "Grep"
+    ],
+    "ask": [
+      "Bash(git push:*)",
+      "Bash(git commit:*)",
+      "Bash(git reset:*)",
+      "Bash(npm install:*)",
+      "Bash(npm publish:*)"
+    ],
+    "deny": [
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Read(./**/*.pem)",
+      "Read(./**/*.key)",
+      "Bash(rm -rf:*)"
+    ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 .claude/hooks/format-on-edit.py"
+          }
+        ]
+      }
+    ]
+  }
+}
