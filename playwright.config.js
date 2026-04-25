@@ -16,12 +16,10 @@ module.exports = defineConfig({
     video: 'retain-on-failure',
     screenshot: 'only-on-failure',
     trace: 'on-first-retry',
-    // Use Nix-managed Chromium when available, fall back to Playwright default
-    ...(process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH && {
-      launchOptions: {
-        executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH,
-      },
-    }),
+    // Use system Chrome (macOS) or Nix Chromium (Linux) when env var is set
+    ...(process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH
+      ? { launchOptions: { executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH } }
+      : {}),
   },
 
   // Re-use a running server in dev; spin one up in CI
